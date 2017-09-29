@@ -8,6 +8,14 @@ const SITE_URL = 'http://www.geopeitus.ee/'
 
 const signature = (treasure) => treasure.date + " | " + treasure.name 
 
+const buildMessage = (ctx, treasure) => {
+  return {
+    from: ctx.secrets.TWILIO_NUMBER,
+    to: ctx.secrets.TARGET_PHONE_NUMBER,
+    body: `Uus geopeituse aare: ${treasure.name} (${treasure.size}, ${treasure.rating}, ${treasure.county})`
+  }
+}
+
 const extractTreasureInformation = (node, $) => {
   const keys = ['date', 'name', 'rating', 'size', 'county']
   const values = node.find('td').get().map((el) => $(el).text().trim())
@@ -27,20 +35,11 @@ const getCurrentTreasureList = (callback) => {
       .get()
       .map((el) => extractTreasureInformation($(el), $))
 
-    console.log(treasures)
     callback(null, treasures)
   })
 }
 
 const seenTreasureSignatures = (ctx, callback) => ctx.storage.get(callback)
-
-const buildMessage = (ctx, treasure) => {
-  return {
-    from: ctx.secrets.TWILIO_NUMBER,
-    to: ctx.secrets.TARGET_PHONE_NUMBER,
-    body: `Uus geopeituse aare: ${treasure.name} (${treasure.size}, ${treasure.rating}, ${treasure.county})`
-  }
-}
 
 const notifyNewTreasures = (ctx, treasures, seenTreasureSignatures, callback) => {
   if (_.isEmpty(seenTreasureSignatures)) {
